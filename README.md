@@ -27,6 +27,11 @@ This application fetches and displays weather forecast data based on latitude an
 
 4. Open your browser and navigate to `http://localhost:8080/weather/forecast?latitude=39.7456&longitude=-97.0892` to see the weather forecast.
 
+Alternatively fetch the weather forecast using `curl`, you can use the following command:
+
+```sh
+curl "http://localhost:8080/weather/forecast?latitude=39.7456&longitude=-90.0892"
+
 ### Using Docker
 
 1. Clone the repository:
@@ -44,6 +49,11 @@ This application fetches and displays weather forecast data based on latitude an
     ```
 
 4. Open your browser and navigate to `http://localhost:8080/weather/forecast?latitude=39.7456&longitude=-97.0892` to see the weather forecast.
+
+Alternatively fetch the weather forecast using `curl`, you can use the following command:
+
+```sh
+curl "http://localhost:8080/weather/forecast?latitude=39.7456&longitude=-90.0892"
 
 ## License
 
