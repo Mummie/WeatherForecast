@@ -46,19 +46,18 @@ func GetWeatherData(latitude, longitude string) (*ForecastResponse, error) {
 
 	geoUrl, err := GetGeoPoints(latitude, longitude)
 	if err != nil {
-		return nil, errors.Wrap(ErrInvalidGeoPoints, err.Error())
+		return nil, err
 	}
 
-	log.Println("making request to ", geoUrl.Properties.Forecast)
 	req, err := http.NewRequest("GET", geoUrl.Properties.Forecast, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
+		return nil, errors.Wrap(err, fmt.Sprintf("got error creating request to %v", geoUrl.Properties.Forecast))
 	}
 	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching point data: %w", err)
+		return nil, errors.Wrap(err, fmt.Sprintf("got error sending request to %v", geoUrl.Properties.Forecast))
 	}
 	defer resp.Body.Close()
 
@@ -79,36 +78,32 @@ func GetWeatherData(latitude, longitude string) (*ForecastResponse, error) {
 	return &forecastData, nil
 }
 
-func GetGeoPoints(latitude, longitude string) (*GeoResponse, error) {
+func GetGeoPoints(latitude, longitude string) (r *GeoResponse, err error) {
 	client := &http.Client{}
 
 	url := fmt.Sprintf(geoPointUrl, latitude, longitude)
 
-	log.Println(url)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("error creating request: %w", err)
+		return nil, errors.Wrap(err, "got error creating request to GeoPoints URL")
 	}
 	req.Header.Set("User-Agent", userAgent)
 
 	resp, err := client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("error fetching point data: %w", err)
+		return nil, errors.Wrap(err, "got error sending client request to GeoPoints URL")
 	}
 	defer resp.Body.Close()
 
-	log.Println(url)
-	log.Println(resp)
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Wrap(ErrInvalidResponse, fmt.Sprintf("status code: %d", resp.StatusCode))
+		return nil, errors.Wrap(ErrInvalidResponse, "got non 200 status code from GeoPoints URL")
 	}
 
-	var r GeoResponse
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {
-		return nil, fmt.Errorf("error decoding point data: %w", err)
+		return nil, errors.Wrap(err, "got error decoding GeoPoints response to struct")
 	}
 
 	log.Println(r.Properties.Forecast)
-	return &r, nil
+	return r, nil
 }
