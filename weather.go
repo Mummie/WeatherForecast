@@ -13,6 +13,7 @@ type Period struct {
 	Temperature     int    `json:"temperature"`
 	TemperatureUnit string `json:"temperatureUnit"`
 	ShortForecast   string `json:"shortForecast"`
+	Characterize    string `json:"characterization"`
 }
 
 type ForecastProperties struct {
@@ -32,22 +33,32 @@ type GeoResponse struct {
 }
 
 var (
-	ErrInvalidGeoPoints = errors.New("invalid geo point data")
-	ErrWeatherAPIPoints = errors.New("error fetching point data")
-	ErrInvalidResponse  = errors.New("invalid response from weather service")
-	ErrForecastAPI      = errors.New("error fetching forecast data")
-	geoPointUrl         = `https://api.weather.gov/points/%s,%s`
+	ErrInvalidGeoPoints   = errors.New("got nil or empty URL from GeoPoints for coordinates")
+	ErrInvalidResponse    = errors.New("invalid response from weather service")
+	ErrInvalidCoordinates = errors.New("invalid coordinates")
+	ErrForecastAPI        = errors.New("error fetching forecast data")
+	geoPointUrl           = `https://api.weather.gov/points/%s,%s`
 )
 
 const userAgent = "(myweatherapp.com, contact@myweatherapp.com)"
 
-func GetWeatherData(latitude, longitude string) (*ForecastResponse, error) {
+func GetWeatherData(latitude, longitude string) (f *ForecastResponse, err error) {
+	if !ValidateCoordinates(latitude, longitude) {
+		return nil, ErrInvalidCoordinates
+	}
 	client := &http.Client{}
 
 	geoUrl, err := GetGeoPoints(latitude, longitude)
 	if err != nil {
 		return nil, err
 	}
+
+	// Check if geoUrl is nil
+	if geoUrl == nil || geoUrl.Properties.Forecast == "" {
+		return nil, errors.Wrap(ErrInvalidGeoPoints, fmt.Sprintf("got err for invalid coordinates %v, %v", latitude, longitude))
+	}
+
+	log.Println(geoUrl)
 
 	req, err := http.NewRequest("GET", geoUrl.Properties.Forecast, nil)
 	if err != nil {
@@ -67,15 +78,14 @@ func GetWeatherData(latitude, longitude string) (*ForecastResponse, error) {
 		return nil, errors.Wrap(ErrInvalidResponse, fmt.Sprintf("status code: %d", resp.StatusCode))
 	}
 
-	var forecastData ForecastResponse
-	err = json.NewDecoder(resp.Body).Decode(&forecastData)
+	err = json.NewDecoder(resp.Body).Decode(&f)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding point data: %w", err)
 	}
 
-	log.Println(forecastData)
+	log.Println(f)
 
-	return &forecastData, nil
+	return f, nil
 }
 
 func GetGeoPoints(latitude, longitude string) (r *GeoResponse, err error) {
@@ -96,14 +106,15 @@ func GetGeoPoints(latitude, longitude string) (r *GeoResponse, err error) {
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		return nil, errors.Wrap(ErrInvalidResponse, "got non 200 status code from GeoPoints URL")
+		return nil, errors.Wrap(err, "got non 200 status code from GeoPoints URL")
 	}
+
+	log.Println(resp.Body)
 
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {
 		return nil, errors.Wrap(err, "got error decoding GeoPoints response to struct")
 	}
 
-	log.Println(r.Properties.Forecast)
 	return r, nil
 }

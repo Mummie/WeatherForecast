@@ -20,11 +20,11 @@ func characterizeTemperature(temp int, scale string) string {
 	}
 
 	switch {
-	case temp >= float64(hotMin) && temp <= float64(hotMax):
+	case temp >= hotMin && temp <= hotMax:
 		return "hot"
-	case temp >= float64(modMin) && temp <= float64(modMax):
+	case temp >= modMin && temp <= modMax:
 		return "moderate"
-	case temp >= float64(coldMin) && temp <= float64(coldMax):
+	case temp >= coldMin && temp <= coldMax:
 		return "cold"
 	default:
 		return "unknown"

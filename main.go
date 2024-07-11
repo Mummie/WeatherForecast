@@ -54,11 +54,6 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	longitude := r.URL.Query().Get("longitude")
 	scale := r.URL.Query().Get("scale")
 
-	if latitude == "" || longitude == "" {
-		sendErrorResponse(w, http.StatusBadRequest, "Latitude and Longitude are required parameters")
-		return
-	}
-
 	if scale == "" {
 		scale = "fahrenheit"
 	}
@@ -66,7 +61,7 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	weatherData, err := GetWeatherData(latitude, longitude)
 	if err != nil {
 		log.Println(errors.Unwrap(err))
-		sendErrorResponse(w, http.StatusInternalServerError, "Error fetching weather data")
+		sendErrorResponse(w, err, http.StatusInternalServerError, "Error fetching weather data")
 		return
 	}
 
@@ -74,13 +69,12 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	temperature := weatherData.Properties.Periods[0].Temperature
 	temperatureUnit := "F"
 
-	// tempCharacterization := characterizeTemperature(temperature, scale)
-
 	response := map[string]interface{}{
 		"shortForecast":       shortForecast,
 		"temperature":         temperature,
 		"temperatureUnit":     scale,
 		"temperatureCategory": temperatureUnit,
+		"characterization":    characterizeTemperature(temperature, scale),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
