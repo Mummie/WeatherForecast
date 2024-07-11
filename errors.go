@@ -12,7 +12,7 @@ type ErrorResponse struct {
 	Message    string `json:"message"`
 }
 
-func sendErrorResponse(w http.ResponseWriter, err error, statusCode int, message string) {
+func sendErrorResponse(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/json")
 	var errorResponse ErrorResponse
 	switch true {
@@ -33,8 +33,8 @@ func sendErrorResponse(w http.ResponseWriter, err error, statusCode int, message
 		}
 	default:
 		errorResponse = ErrorResponse{
-			StatusCode: statusCode,
-			Message:    message,
+			StatusCode: http.StatusInternalServerError,
+			Message:    "received unknown error :(",
 		}
 	}
 	w.WriteHeader(errorResponse.StatusCode)

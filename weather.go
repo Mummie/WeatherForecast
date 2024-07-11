@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/pkg/errors"
@@ -58,8 +57,6 @@ func GetWeatherData(latitude, longitude string) (f *ForecastResponse, err error)
 		return nil, errors.Wrap(ErrInvalidGeoPoints, fmt.Sprintf("got err for invalid coordinates %v, %v", latitude, longitude))
 	}
 
-	log.Println(geoUrl)
-
 	req, err := http.NewRequest("GET", geoUrl.Properties.Forecast, nil)
 	if err != nil {
 		return nil, errors.Wrap(err, fmt.Sprintf("got error creating request to %v", geoUrl.Properties.Forecast))
@@ -72,8 +69,6 @@ func GetWeatherData(latitude, longitude string) (f *ForecastResponse, err error)
 	}
 	defer resp.Body.Close()
 
-	log.Println(resp.Body)
-
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.Wrap(ErrInvalidResponse, fmt.Sprintf("status code: %d", resp.StatusCode))
 	}
@@ -82,8 +77,6 @@ func GetWeatherData(latitude, longitude string) (f *ForecastResponse, err error)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding point data: %w", err)
 	}
-
-	log.Println(f)
 
 	return f, nil
 }
@@ -108,8 +101,6 @@ func GetGeoPoints(latitude, longitude string) (r *GeoResponse, err error) {
 	if resp.StatusCode != http.StatusOK {
 		return nil, errors.Wrap(err, "got non 200 status code from GeoPoints URL")
 	}
-
-	log.Println(resp.Body)
 
 	err = json.NewDecoder(resp.Body).Decode(&r)
 	if err != nil {

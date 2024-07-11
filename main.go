@@ -61,7 +61,7 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	weatherData, err := GetWeatherData(latitude, longitude)
 	if err != nil {
 		log.Println(errors.Unwrap(err))
-		sendErrorResponse(w, err, http.StatusInternalServerError, "Error fetching weather data")
+		sendErrorResponse(w, err)
 		return
 	}
 
@@ -69,6 +69,7 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	temperature := weatherData.Properties.Periods[0].Temperature
 	temperatureUnit := "F"
 
+	// Normally wouldn't do this and would have a separate file/package to handle responses but for simplicity sake just send as generic json
 	response := map[string]interface{}{
 		"shortForecast":       shortForecast,
 		"temperature":         temperature,
