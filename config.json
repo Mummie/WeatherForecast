@@ -1,0 +1,17 @@
+{
+    "temperature_ranges": {
+      "hot": {
+        "min": 85,
+        "max": 130
+      },
+      "moderate": {
+        "min": 60,
+        "max": 84
+      },
+      "cold": {
+        "min": 0,
+        "max": 59
+      }
+    }
+  }
+  
