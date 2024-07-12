@@ -5,7 +5,7 @@ import (
 )
 
 // ValidateCoordinates takes latitude and longitude as strings and returns true if they are legitimate geo coordinates.
-func ValidateCoordinates(latitude, longitude string) bool {
+func validateCoordinates(latitude, longitude string) bool {
 	lat, err := strconv.ParseFloat(latitude, 64)
 	if err != nil {
 		return false

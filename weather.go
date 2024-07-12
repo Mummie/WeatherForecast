@@ -42,7 +42,7 @@ var (
 const userAgent = "(myweatherapp.com, contact@myweatherapp.com)"
 
 func GetWeatherData(latitude, longitude string) (f *ForecastResponse, err error) {
-	if !ValidateCoordinates(latitude, longitude) {
+	if !validateCoordinates(latitude, longitude) {
 		return nil, ErrInvalidCoordinates
 	}
 	client := &http.Client{}

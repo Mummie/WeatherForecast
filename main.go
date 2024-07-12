@@ -27,8 +27,6 @@ type Config struct {
 	} `json:"temperature_ranges"`
 }
 
-var config Config
-
 func init() {
 	data, err := ioutil.ReadFile("config.json")
 	if err != nil {
@@ -38,6 +36,10 @@ func init() {
 	err = json.Unmarshal(data, &config)
 	if err != nil {
 		log.Fatalf("Error parsing config file: %v", err)
+	}
+
+	if config.Cold.Max == 0 {
+		config = defaultConfig
 	}
 }
 
@@ -52,11 +54,6 @@ func main() {
 func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	latitude := r.URL.Query().Get("latitude")
 	longitude := r.URL.Query().Get("longitude")
-	scale := r.URL.Query().Get("scale")
-
-	if scale == "" {
-		scale = "fahrenheit"
-	}
 
 	weatherData, err := GetWeatherData(latitude, longitude)
 	if err != nil {
@@ -69,13 +66,12 @@ func weatherHandler(w http.ResponseWriter, r *http.Request) {
 	temperature := weatherData.Properties.Periods[0].Temperature
 	temperatureUnit := "F"
 
-	// Normally wouldn't do this and would have a separate file/package to handle responses but for simplicity sake just send as generic json
+	// Normally wouldn't do this and would have a separate file/package to handle responses but for simplicity sake
 	response := map[string]interface{}{
-		"shortForecast":       shortForecast,
-		"temperature":         temperature,
-		"temperatureUnit":     scale,
-		"temperatureCategory": temperatureUnit,
-		"characterization":    characterizeTemperature(temperature, scale),
+		"shortForecast":    shortForecast,
+		"temperature":      temperature,
+		"temperatureUnit":  temperatureUnit,
+		"characterization": characterizeTemperature(temperature),
 	}
 
 	w.Header().Set("Content-Type", "application/json")
